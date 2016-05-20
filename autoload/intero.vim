@@ -52,5 +52,19 @@ function! intero#type_at()
 endfunction
 
 function! intero#omnifunc(findstart, base) abort
-	echom "HIii"
+	if a:findstart
+		let line = getline('.')
+		let start = col('.') - 2
+		while start > 0 && !(line[start - 1] =~ '\s')
+			let start -= 1
+		endwhile
+		let g:temp___start = start
+		return start
+	else
+		let ctx = { 'base': a:base }
+		function ctx.callback() dict
+			return rpcrequest(b:intero_rpc_channel, 'complete', self.base)
+		endfunction
+		return intero#ensureconn(ctx)
+	endif
 endfunction
