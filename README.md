@@ -30,7 +30,7 @@ setlocal omnifunc=intero#omnifunc
 vnoremap <buffer> <Leader>G :InteroGoto<CR>
 vnoremap <buffer> <Leader>T :InteroType<CR>
 vnoremap <buffer> <Leader>U :InteroUses<CR>
-nnoremap <buffer> <Leader>m :call intero#ensurebufmodule()<CR>:call VimuxSendText(":m + ".b:intero_module."\n")<CR>
+nnoremap <buffer> <Leader>m :call intero#ensurebufmodule()<CR>:call VimuxSendText(":m + ".b:intero_module."\n:reload\n")<CR>
 ```
 
 (The last line uses [Vimux](https://github.com/benmills/vimux) to tell Intero to load the current module.)
