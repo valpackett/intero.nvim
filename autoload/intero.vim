@@ -1,4 +1,3 @@
-
 function! intero#connect()
 	let sockpath = intero#util#findsocket(expand('%:p:h'))
 	if sockpath == -1
@@ -18,7 +17,7 @@ function! intero#ensureconn(ctx)
 	endif
 	try
 		return a:ctx.callback()
-	catch /Invalid channel.*/
+	catch /Invalid.*/
 		call intero#connect()
 		return a:ctx.callback()
 	endtry
@@ -29,7 +28,7 @@ function! intero#type(str)
 	function ctx.callback() dict
 		return rpcrequest(b:intero_rpc_channel, 'type', self.str)
 	endfunction
-	return intero#ensureconn(ctx)
+	return ''.intero#ensureconn(ctx)
 endfunction
 
 function! intero#ranged(fun)
@@ -60,7 +59,24 @@ function! intero#uses()
 			endif
 		endfor
 		call setqflist(result, 'r', 'Uses of '.intero#util#get_visual_selection()[4])
-		:copen
+		copen
+	endif
+endfunction
+
+function! intero#gotodef()
+	let dat = intero#ranged('loc-at')
+	if has_key(dat, 'error')
+		echom dat.error
+	elseif has_key(dat, 'loc')
+		let fpath = intero#util#findfile(expand('%:p:h'), substitute(dat.loc[0], '\.', '/', 'g').'.hs')
+		if fpath == -1
+			let fpath = dat.loc[0]
+		endif
+		execute 'edit +'.dat.loc[1].' '.fpath
+		normal 0
+		execute 'normal '.(dat.loc[2] - 1).'l'
+	elseif has_key(dat, 'unhelpful')
+		echom dat.unhelpful
 	endif
 endfunction
 
@@ -71,7 +87,6 @@ function! intero#omnifunc(findstart, base) abort
 		while start > 0 && !(line[start - 1] =~ '\s')
 			let start -= 1
 		endwhile
-		let g:temp___start = start
 		return start
 	else
 		let ctx = { 'base': a:base }

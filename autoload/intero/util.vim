@@ -14,7 +14,7 @@ function! intero#util#findsocket(dir)
 	elseif a:dir ==# '/'
 		return -1
 	else
-		return intero#findsocket(fnamemodify(a:dir, ':h'))
+		return intero#util#findsocket(fnamemodify(a:dir, ':h'))
 	endif
 endfunction
 
