@@ -1,15 +1,6 @@
-function! intero#findsocket(dir)
-	if getftype(a:dir.'/.intero.sock') ==# "socket" || getftype(a:dir.'/.intero.sock') ==# "fifo"
-		return a:dir.'/.intero.sock'
-	elseif a:dir ==# '/'
-		return -1
-	else
-		return intero#findsocket(fnamemodify(a:dir, ':h'))
-	endif
-endfunction
 
 function! intero#connect()
-	let sockpath = intero#findsocket(expand('%:p:h'))
+	let sockpath = intero#util#findsocket(expand('%:p:h'))
 	if sockpath == -1
 		echom 'Could not find .intero.sock in '.expand('%:p:h').' or any of its parent directories.'
 	else
@@ -41,14 +32,36 @@ function! intero#type(str)
 	return intero#ensureconn(ctx)
 endfunction
 
-function! intero#type_at()
+function! intero#ranged(fun)
 	execute ':silent keeppatterns %s/\s*module\s*\(\S\+\)/\=intero#setbufmodule(submatch(1))/gn'
-	let ctx = {}
+	let ctx = { 'fun': a:fun }
 	let ctx.pos = intero#util#get_visual_selection()
 	function ctx.callback() dict
-		return rpcrequest(b:intero_rpc_channel, 'type-at', b:intero_module, self.pos[0], self.pos[1], self.pos[2], self.pos[3], self.pos[4])
+		return rpcrequest(b:intero_rpc_channel, self.fun, b:intero_module, self.pos[0], self.pos[1], self.pos[2], self.pos[3], self.pos[4])
 	endfunction
 	return intero#ensureconn(ctx)
+endfunction
+
+function! intero#uses()
+	let dat = intero#ranged('uses-at')
+	if has_key(dat, 'error')
+		echom dat.error
+	elseif has_key(dat, 'uses')
+		let result = []
+		for use in dat.uses
+			if has_key(use, 'loc')
+				let fpath = intero#util#findfile(expand('%:p:h'), substitute(use.loc[0], '\.', '/', 'g').'.hs')
+				if fpath == -1
+					let fpath = use.loc[0]
+				endif
+				call add(result, { 'filename': fpath, 'lnum': use.loc[1], 'col': use.loc[2], 'type': 'U' })
+			elseif has_key(use, 'unhelpful')
+				call add(result, { 'text': use.unhelpful })
+			endif
+		endfor
+		call setqflist(result, 'r', 'Uses of '.intero#util#get_visual_selection()[4])
+		:copen
+	endif
 endfunction
 
 function! intero#omnifunc(findstart, base) abort
