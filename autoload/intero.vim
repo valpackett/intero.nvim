@@ -11,6 +11,10 @@ function! intero#setbufmodule(modname)
 	let b:intero_module = a:modname
 endfunction
 
+function! intero#ensurebufmodule()
+	execute ':silent keeppatterns %s/\s*module\s*\(\S\+\)/\=intero#setbufmodule(submatch(1))/gn'
+endfunction
+
 function! intero#ensureconn(ctx)
 	if !exists('b:intero_rpc_channel')
 		call intero#connect()
@@ -32,7 +36,7 @@ function! intero#type(str)
 endfunction
 
 function! intero#ranged(fun)
-	execute ':silent keeppatterns %s/\s*module\s*\(\S\+\)/\=intero#setbufmodule(submatch(1))/gn'
+	call intero#ensurebufmodule()
 	let ctx = { 'fun': a:fun }
 	let ctx.pos = intero#util#get_visual_selection()
 	function ctx.callback() dict
