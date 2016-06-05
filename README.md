@@ -22,6 +22,8 @@ As a result, you get very robust and lightning fast omni-completion, go-to-defin
 3. Run the REPL at your project root with `stack ghci --with-ghc intero`
 4. Configure your Neovim!
 
+Note for Linux users: make sure you are using the openbsd netcat variant, which supports connecting to UNIX sockets. For Arch Linux use the openbsd-netcat package.
+
 Example `ftplugin/haskell.vim`:
 
 ```viml
@@ -45,5 +47,5 @@ By participating in this project you agree to follow the [Contributor Code of Co
 
 ## License
 
-This is free and unencumbered software released into the public domain.  
+This is free and unencumbered software released into the public domain.
 For more information, please refer to the `UNLICENSE` file or [unlicense.org](http://unlicense.org).
